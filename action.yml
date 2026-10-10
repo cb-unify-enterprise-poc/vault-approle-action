@@ -1,0 +1,55 @@
+# Custom CloudBees Unify action: logs in to HashiCorp Vault via AppRole
+# and reads one field from a KV v2 secret, exposing it as this action's
+# own output for a calling workflow to use in a later step.
+#
+# Schema confirmed against CloudBees' own "Create a custom action"
+# tutorial (apiVersion/kind/name/description/inputs/runs.steps). The
+# `outputs:` block below is NOT confirmed against any documentation -
+# mcp__cloudbees__workflow_validate only validates kind: workflow, not
+# kind: action, so there was no way to check this mechanically. It's
+# modeled on how cloudbees-io/kaniko@v1 (a real, working action) exposes
+# its own output to a calling workflow with no visible extra mapping
+# step - inferred, not verified. Test with a real run before trusting it.
+
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: action
+name: Vault AppRole secret
+description: Logs in to HashiCorp Vault via AppRole and reads one field from a KV v2 secret
+inputs:
+  vault-addr:
+    description: Vault server address, e.g. http://1.2.3.4:8200
+    required: true
+  role-id:
+    description: AppRole role_id
+    required: true
+  secret-id:
+    description: AppRole secret_id
+    required: true
+  secret-path:
+    description: KV v2 secret path, e.g. secret/demo
+    required: true
+  secret-field:
+    description: Field name to read from the secret
+    required: true
+    default: password
+outputs:
+  value:
+    description: The retrieved secret field value
+    value: ${{ steps.read.outputs.value }}
+runs:
+  steps:
+    - id: read
+      name: Log in to Vault and read secret
+      uses: docker://hashicorp/vault:2.1
+      shell: sh
+      env:
+        VAULT_ADDR: ${{ inputs.vault-addr }}
+        ROLE_ID: ${{ inputs.role-id }}
+        SECRET_ID: ${{ inputs.secret-id }}
+        SECRET_PATH: ${{ inputs.secret-path }}
+        SECRET_FIELD: ${{ inputs.secret-field }}
+      run: |
+        CLIENT_TOKEN=$(vault write -field=token auth/approle/login role_id="$ROLE_ID" secret_id="$SECRET_ID")
+        export VAULT_TOKEN="$CLIENT_TOKEN"
+        VALUE=$(vault kv get -field="$SECRET_FIELD" "$SECRET_PATH")
+        echo -n "$VALUE" > "$CLOUDBEES_OUTPUTS/value"
