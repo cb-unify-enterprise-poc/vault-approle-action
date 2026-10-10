@@ -54,7 +54,7 @@ steps:
 |---|---|
 | `value` | The retrieved secret field value |
 
-**Status: unverified.** The `outputs:` block in `action.yml` is modeled on
+**Status: unverified.** The `outputs:` block in `action.yaml` is modeled on
 how `cloudbees-io/kaniko@v1` exposes its own output to a calling
 workflow, since `mcp__cloudbees__workflow_validate` only validates
 `kind: workflow`, not `kind: action` — there was no way to check this
