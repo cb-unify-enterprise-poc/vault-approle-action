@@ -5,8 +5,7 @@ AppRole and reads one field from a KV v2 secret, so any workflow in any
 component can retrieve a Vault secret with one step instead of
 copy-pasting the AppRole login/read logic everywhere.
 
-Built for the ADP POC's secrets-management requirement. There's no
-confirmed native CloudBees Unify action for Vault (checked
+There's no confirmed native CloudBees Unify action for Vault (checked
 docs.cloudbees.com and the `cloudbees-io` GitHub org — the only
 documented CloudBees↔Vault integration is a credentials-provider plugin
 for CloudBees CI/Jenkins, also AppRole-based). This wraps the official
@@ -61,11 +60,11 @@ workflow, since `mcp__cloudbees__workflow_validate` only validates
 mechanically before a real run. If `${{ steps.vault.outputs.value }}`
 comes back empty in a real run, that's the part to fix first.
 
-## Example Vault setup (this demo's instance)
+## Example Vault setup
 
 Vault OSS, dev mode, deployed via the official Helm chart — dev mode
-only (in-memory, auto-unsealed, root-token auth), fine for a disposable
-POC, never for production:
+only (in-memory, auto-unsealed, root-token auth), fine for development
+and testing, never for production:
 
 ```bash
 vault kv put secret/demo username=demo-user password=demo-s3cr3t
